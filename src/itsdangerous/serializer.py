@@ -325,11 +325,16 @@ class Serializer(t.Generic[_TSerialized]):
         """
         f.write(self.dumps(obj, salt))
 
-    def loads(
-        self, s: str | bytes, salt: str | bytes | None = None, **kwargs: t.Any
-    ) -> t.Any:
+    def loads(self, s: str | bytes, salt: str | bytes | None = None) -> t.Any:
         """Reverse of :meth:`dumps`. Raises :exc:`.BadSignature` if the
         signature validation fails.
+
+        This method does not accept ``max_age`` or other timed-serializer
+        options. Use :class:`.TimedSerializer` (or
+        :class:`~itsdangerous.url_safe.URLSafeTimedSerializer`) when
+        age checks are required. Unexpected keyword arguments raise
+        :exc:`TypeError` so mistakes like ``loads(..., max_age=...)`` on
+        a non-timed serializer are not silently ignored.
         """
         s = want_bytes(s)
         last_exception = None

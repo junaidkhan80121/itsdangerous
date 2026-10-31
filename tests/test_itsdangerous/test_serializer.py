@@ -87,6 +87,21 @@ class TestSerializer:
 
         assert exc_info.value.original_error is not None
 
+    def test_loads_rejects_unexpected_kwargs(
+        self, serializer: Serializer, value: Any
+    ):
+        # Untimed serializers must not silently ignore timed options such as
+        # max_age (see pallets/itsdangerous#429). Timed subclasses accept
+        # max_age, so skip those here.
+        from itsdangerous.timed import TimedSerializer
+
+        if isinstance(serializer, TimedSerializer):
+            pytest.skip("TimedSerializer intentionally accepts max_age")
+
+        signed = serializer.dumps(value)
+        with pytest.raises(TypeError, match="max_age"):
+            serializer.loads(signed, max_age=-1)  # type: ignore[call-arg]
+
     def test_loads_unsafe(self, serializer: Serializer, value: Any):
         signed = serializer.dumps(value)
         assert serializer.loads_unsafe(signed) == (True, value)
